@@ -23,6 +23,7 @@
         :key="recipe.id"
         :recipe="recipe"
         :ingredients="ingredients"
+        :stocked-ingredient-ids="stockedIngredientIds"
         :collected="collectionStore.isRecipeCollected(recipe.id)"
         @favorite="collectionStore.quickToggleFavorite"
       />
@@ -58,7 +59,7 @@ const recipeStore = useRecipeStore();
 const ingredientStore = useIngredientStore();
 const collectionStore = useCollectionStore();
 const { sortedRecipes } = storeToRefs(recipeStore);
-const { ingredients } = storeToRefs(ingredientStore);
+const { ingredients, stockedIngredientIds } = storeToRefs(ingredientStore);
 
 function defaultFilters(): FilterState {
   return {

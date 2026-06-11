@@ -5,6 +5,7 @@
         <div>
           <p class="text-xs font-bold uppercase tracking-[0.24em] text-[var(--color-muted)]">{{ recipe.baseSpirit }}</p>
           <h1 class="mt-3 font-display text-5xl leading-none text-[var(--color-text)]">{{ recipe.name }}</h1>
+          <p v-if="missingCount > 0" class="mt-3 text-sm font-semibold text-[#c8212f] dark:text-[#f87171]">缺 {{ missingCount }} 种材料，请先采购</p>
           <p class="mt-5 max-w-3xl text-base leading-8 text-[var(--color-muted)]">{{ recipe.description }}</p>
         </div>
         <GlassIcon :type="recipe.glassType" :size="92" class="text-[var(--color-accent)]" />
@@ -36,9 +37,12 @@
       <section class="mt-10">
         <h2 class="section-title">材料用量</h2>
         <div class="mt-4 grid gap-3">
-          <div v-for="row in ingredientRows" :key="row.recipeIngredient.id" class="flex items-center justify-between border-b border-[var(--color-border)] py-3">
-            <IngredientTag :ingredient="row.ingredient" :amount="row.recipeIngredient.amount" :unit="row.recipeIngredient.unit" />
-            <span class="text-sm text-[var(--color-muted)]">{{ row.ingredient.description }}</span>
+          <div v-for="row in ingredientRows" :key="row.recipeIngredient.id" class="flex items-center justify-between border-b border-[var(--color-border)] py-3" :class="!isStocked(row.ingredient.id) ? 'bg-[color-mix(in_oklch,#c8212f,transparent_92%)] dark:bg-[color-mix(in_oklch,#f87171,transparent_92%)]' : ''">
+            <IngredientTag :ingredient="row.ingredient" :amount="row.recipeIngredient.amount" :unit="row.recipeIngredient.unit" :missing="!isStocked(row.ingredient.id)" />
+            <div class="flex items-center gap-3">
+              <span class="text-sm text-[var(--color-muted)]">{{ row.ingredient.description }}</span>
+              <span v-if="!isStocked(row.ingredient.id)" class="shrink-0 text-sm font-semibold text-[#c8212f] dark:text-[#f87171]">缺货</span>
+            </div>
           </div>
         </div>
       </section>
@@ -83,6 +87,7 @@ import { formatAbv, formatDate, formatDifficulty, formatGlassType, formatMixMeth
 interface RecipeDetailProps {
   recipe: CocktailRecipe;
   ingredients: Ingredient[];
+  stockedIngredientIds: string[];
   collected?: boolean;
 }
 
@@ -100,6 +105,10 @@ interface IngredientRow {
   ingredient: Ingredient;
 }
 
+function isStocked(id: string): boolean {
+  return props.stockedIngredientIds.includes(id);
+}
+
 const ingredientRows = computed<IngredientRow[]>(() => {
   const ingredientMap = new Map(props.ingredients.map((ingredient) => [ingredient.id, ingredient]));
   return props.recipe.ingredients
@@ -108,6 +117,10 @@ const ingredientRows = computed<IngredientRow[]>(() => {
       return ingredient ? { recipeIngredient, ingredient } : undefined;
     })
     .filter((row): row is IngredientRow => Boolean(row));
+});
+
+const missingCount = computed(() => {
+  return props.recipe.ingredients.filter((ri) => !isStocked(ri.ingredientId)).length;
 });
 
 const recipeAbv = computed(() => calculateRecipeAbv(props.recipe, props.ingredients));

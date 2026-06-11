@@ -241,4 +241,15 @@
     border-color: var(--color-accent);
     background: color-mix(in oklch, var(--color-accent), var(--color-card) 82%);
   }
+
+  .missing-tag {
+    --ring-color: #c8212f;
+    border: 2px dashed #c8212f;
+    background-color: transparent;
+  }
+
+  .dark .missing-tag {
+    --ring-color: #f87171;
+    border-color: #f87171;
+  }
 }

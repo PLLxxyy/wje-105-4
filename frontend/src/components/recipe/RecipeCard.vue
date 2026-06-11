@@ -17,6 +17,7 @@
         :ingredient="item.ingredient"
         :amount="item.recipeIngredient.amount"
         :unit="item.recipeIngredient.unit"
+        :missing="!isStocked(item.ingredient.id)"
       />
     </div>
 
@@ -25,6 +26,7 @@
         <span class="font-semibold text-[var(--color-text)]">{{ formatAbv(recipeAbv) }}</span>
         <span class="mx-2">·</span>
         <span>{{ difficultyLabel }}</span>
+        <span v-if="missingCount > 0" class="ml-2 text-[#c8212f] dark:text-[#f87171]">· 缺 {{ missingCount }} 种</span>
       </div>
       <button
         type="button"
@@ -51,6 +53,7 @@ import { formatAbv } from '../../utils/format';
 interface RecipeCardProps {
   recipe: CocktailRecipe;
   ingredients: Ingredient[];
+  stockedIngredientIds: string[];
   collected?: boolean;
 }
 
@@ -67,6 +70,10 @@ interface IngredientRow {
   ingredient: Ingredient;
 }
 
+function isStocked(id: string): boolean {
+  return props.stockedIngredientIds.includes(id);
+}
+
 const visibleIngredientRows = computed<IngredientRow[]>(() => {
   const ingredientMap = new Map(props.ingredients.map((ingredient) => [ingredient.id, ingredient]));
   return props.recipe.ingredients
@@ -76,6 +83,10 @@ const visibleIngredientRows = computed<IngredientRow[]>(() => {
     })
     .filter((row): row is IngredientRow => Boolean(row))
     .slice(0, 3);
+});
+
+const missingCount = computed(() => {
+  return props.recipe.ingredients.filter((ri) => !isStocked(ri.ingredientId)).length;
 });
 
 const recipeAbv = computed(() => calculateRecipeAbv(props.recipe, props.ingredients));

@@ -3,6 +3,7 @@
     <RecipeDetailPanel
       :recipe="recipe"
       :ingredients="ingredients"
+      :stocked-ingredient-ids="stockedIngredientIds"
       :collected="collectionStore.isRecipeCollected(recipe.id)"
       @favorite="collectionStore.quickToggleFavorite"
       @delete="deleteCurrentRecipe"
@@ -62,7 +63,7 @@ const router = useRouter();
 const recipeStore = useRecipeStore();
 const ingredientStore = useIngredientStore();
 const collectionStore = useCollectionStore();
-const { ingredients } = storeToRefs(ingredientStore);
+const { ingredients, stockedIngredientIds } = storeToRefs(ingredientStore);
 const { sortedCollections: collections } = storeToRefs(collectionStore);
 
 const selectedCollectionId = ref(collections.value[0]?.id ?? '');
