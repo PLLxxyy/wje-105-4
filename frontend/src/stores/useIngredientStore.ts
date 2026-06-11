@@ -14,7 +14,6 @@ export type IngredientPayload = Omit<Ingredient, 'id'>;
 
 export const useIngredientStore = defineStore('ingredients', () => {
   const ingredients = useLocalStorage<Ingredient[]>(STORAGE_KEYS.ingredients, DEFAULT_INGREDIENTS);
-  const stockedIngredientIds = useLocalStorage<string[]>(STORAGE_KEYS.stockedIngredients, []);
 
   const baseSpirits = computed(() => ingredients.value.filter((ingredient) => ingredient.category === INGREDIENT_CATEGORY.BaseSpirit));
 
@@ -24,18 +23,6 @@ export const useIngredientStore = defineStore('ingredients', () => {
 
   function isDefaultIngredient(id: string): boolean {
     return DEFAULT_INGREDIENT_ID_SET.has(id);
-  }
-
-  function isStocked(id: string): boolean {
-    return stockedIngredientIds.value.includes(id);
-  }
-
-  function toggleStock(id: string): void {
-    if (isStocked(id)) {
-      stockedIngredientIds.value = stockedIngredientIds.value.filter((stockedId) => stockedId !== id);
-    } else {
-      stockedIngredientIds.value = [...stockedIngredientIds.value, id];
-    }
   }
 
   function addIngredient(payload: IngredientPayload): Ingredient {
@@ -67,18 +54,14 @@ export const useIngredientStore = defineStore('ingredients', () => {
       return false;
     }
     ingredients.value = ingredients.value.filter((ingredient) => ingredient.id !== id);
-    stockedIngredientIds.value = stockedIngredientIds.value.filter((stockedId) => stockedId !== id);
     return true;
   }
 
   return {
     ingredients,
-    stockedIngredientIds,
     baseSpirits,
     getIngredientById,
     isDefaultIngredient,
-    isStocked,
-    toggleStock,
     addIngredient,
     updateIngredient,
     deleteIngredient

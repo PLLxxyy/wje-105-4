@@ -17,19 +17,14 @@
 
     <section class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
       <div v-if="filtered.length" class="grid gap-4 md:grid-cols-2">
-        <article v-for="ingredient in filtered" :key="ingredient.id" class="border bg-[var(--color-card)] p-5 transition" :class="ingredientStore.isStocked(ingredient.id) ? 'border-[var(--color-accent)]' : 'border-[var(--color-border)]'">
+        <article v-for="ingredient in filtered" :key="ingredient.id" class="border border-[var(--color-border)] bg-[var(--color-card)] p-5">
           <div class="flex items-start justify-between gap-4">
-            <div class="min-w-0">
-              <IngredientTag :ingredient="ingredient" />
-              <p v-if="ingredientStore.isStocked(ingredient.id)" class="mt-2 text-sm font-semibold text-[var(--color-accent)]">● 有库存</p>
-              <p v-else class="mt-2 text-sm font-semibold text-[var(--color-muted)]">○ 无库存</p>
-            </div>
+            <IngredientTag :ingredient="ingredient" />
             <span class="text-sm font-semibold text-[var(--color-muted)]">{{ INGREDIENT_CATEGORY_LABELS[ingredient.category] }}</span>
           </div>
           <p class="mt-4 text-sm leading-6 text-[var(--color-muted)]">{{ ingredient.description }}</p>
           <p class="mt-4 text-sm font-semibold text-[var(--color-text)]">{{ ingredient.abv }}% ABV</p>
-          <div class="mt-5 flex flex-wrap gap-2">
-            <button type="button" class="mini-button" :class="ingredientStore.isStocked(ingredient.id) ? 'bg-[var(--color-accent)] text-[var(--color-accent-text)]' : ''" @click="ingredientStore.toggleStock(ingredient.id)">{{ ingredientStore.isStocked(ingredient.id) ? '标记缺货' : '标记有货' }}</button>
+          <div class="mt-5 flex gap-2">
             <button type="button" class="mini-button" :disabled="ingredientStore.isDefaultIngredient(ingredient.id)" @click="editIngredient(ingredient)">编辑</button>
             <button type="button" class="mini-button" :disabled="ingredientStore.isDefaultIngredient(ingredient.id)" @click="deleteIngredient(ingredient.id)">删除</button>
           </div>

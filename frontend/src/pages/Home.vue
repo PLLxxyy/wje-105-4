@@ -35,7 +35,6 @@
           :key="recipe.id"
           :recipe="recipe"
           :ingredients="ingredients"
-          :stocked-ingredient-ids="stockedIngredientIds"
           :collected="collectionStore.isRecipeCollected(recipe.id)"
           @favorite="collectionStore.quickToggleFavorite"
         />
@@ -53,7 +52,6 @@
           :key="recipe.id"
           :recipe="recipe"
           :ingredients="ingredients"
-          :stocked-ingredient-ids="stockedIngredientIds"
           :collected="collectionStore.isRecipeCollected(recipe.id)"
           @favorite="collectionStore.quickToggleFavorite"
         />
@@ -85,7 +83,7 @@ const recipeStore = useRecipeStore();
 const ingredientStore = useIngredientStore();
 const collectionStore = useCollectionStore();
 const { sortedRecipes, recentRecipes } = storeToRefs(recipeStore);
-const { ingredients, stockedIngredientIds } = storeToRefs(ingredientStore);
+const { ingredients } = storeToRefs(ingredientStore);
 
 const quickEntries = [
   { to: '/recipes/new', label: '创建配方', icon: '+' },

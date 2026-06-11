@@ -3,6 +3,5 @@ export const STORAGE_KEYS = {
   ingredients: 'wjecocktaillab:ingredients',
   collections: 'wjecocktaillab:collections',
   theme: 'wjecocktaillab:theme',
-  recentRecipes: 'wjecocktaillab:recent-recipes',
-  stockedIngredients: 'wjecocktaillab:stocked-ingredients'
+  recentRecipes: 'wjecocktaillab:recent-recipes'
 } as const;

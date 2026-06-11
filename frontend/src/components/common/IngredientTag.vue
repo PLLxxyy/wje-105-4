@@ -1,12 +1,7 @@
 <template>
-  <span
-    class="inline-flex max-w-full items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ring-1"
-    :class="missing ? 'missing-tag ring-2' : 'ring-black/10'"
-    :style="tagStyle"
-  >
+  <span class="inline-flex max-w-full items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ring-1 ring-black/10" :style="tagStyle">
     <span class="truncate">{{ ingredient.name }}</span>
     <span v-if="amount !== undefined && unit" class="shrink-0 opacity-80">{{ formatAmount(amount, unit) }}</span>
-    <span v-if="missing" class="shrink-0">!</span>
     <button
       v-if="closable"
       type="button"
@@ -30,12 +25,10 @@ interface IngredientTagProps {
   amount?: number;
   unit?: IngredientUnit;
   closable?: boolean;
-  missing?: boolean;
 }
 
 const props = withDefaults(defineProps<IngredientTagProps>(), {
-  closable: false,
-  missing: false
+  closable: false
 });
 
 const emit = defineEmits<{
@@ -51,18 +44,8 @@ function contrastColor(hexColor: string): string {
   return luminance > 0.62 ? '#1c1712' : '#fffaf0';
 }
 
-const tagStyle = computed(() => {
-  if (props.missing) {
-    return {
-      backgroundColor: 'transparent',
-      color: 'var(--color-muted)',
-      textDecoration: 'line-through',
-      textDecorationStyle: 'dashed'
-    };
-  }
-  return {
-    backgroundColor: props.ingredient.color,
-    color: contrastColor(props.ingredient.color)
-  };
-});
+const tagStyle = computed(() => ({
+  backgroundColor: props.ingredient.color,
+  color: contrastColor(props.ingredient.color)
+}));
 </script>
