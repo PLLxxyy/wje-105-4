@@ -10,6 +10,20 @@
         <GlassIcon :type="recipe.glassType" :size="92" class="text-[var(--color-accent)]" />
       </div>
 
+      <div v-if="missingCount > 0" class="mt-8 rounded-lg border-2 border-dashed border-red-400/60 bg-red-500/10 p-5">
+        <p class="text-lg font-bold text-red-600 dark:text-red-400">
+          ⚠ 缺少 {{ missingCount }} / {{ ingredientRows.length }} 种材料
+        </p>
+        <p class="mt-2 text-sm text-[var(--color-muted)]">
+          缺少：{{ missingIngredientNames.join('、') }}
+        </p>
+      </div>
+      <div v-else class="mt-8 rounded-lg border-2 border-dashed border-green-500/50 bg-green-500/10 p-5">
+        <p class="text-lg font-bold text-green-600 dark:text-green-400">
+          ✓ 所有材料已有库存，可以开始调制
+        </p>
+      </div>
+
       <div class="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div class="metric">
           <span>杯型</span>
@@ -36,9 +50,22 @@
       <section class="mt-10">
         <h2 class="section-title">材料用量</h2>
         <div class="mt-4 grid gap-3">
-          <div v-for="row in ingredientRows" :key="row.recipeIngredient.id" class="flex items-center justify-between border-b border-[var(--color-border)] py-3">
-            <IngredientTag :ingredient="row.ingredient" :amount="row.recipeIngredient.amount" :unit="row.recipeIngredient.unit" />
-            <span class="text-sm text-[var(--color-muted)]">{{ row.ingredient.description }}</span>
+          <div v-for="row in ingredientRows" :key="row.recipeIngredient.id" class="flex items-center justify-between border-b border-[var(--color-border)] py-3" :class="{ 'opacity-70': !inventoryStore.hasIngredient(row.ingredient.id) }">
+            <IngredientTag
+              :ingredient="row.ingredient"
+              :amount="row.recipeIngredient.amount"
+              :unit="row.recipeIngredient.unit"
+              :missing="!inventoryStore.hasIngredient(row.ingredient.id)"
+            />
+            <div class="flex items-center gap-3">
+              <span class="text-sm text-[var(--color-muted)]">{{ row.ingredient.description }}</span>
+              <span
+                v-if="!inventoryStore.hasIngredient(row.ingredient.id)"
+                class="shrink-0 rounded-full border border-red-400/50 bg-red-500/10 px-2 py-0.5 text-xs font-semibold text-red-600 dark:text-red-400"
+              >
+                缺
+              </span>
+            </div>
           </div>
         </div>
       </section>
@@ -75,6 +102,7 @@
 import { computed } from 'vue';
 import GlassIcon from '../common/GlassIcon.vue';
 import IngredientTag from '../common/IngredientTag.vue';
+import { useInventoryStore } from '../../stores/useInventoryStore';
 import type { Ingredient } from '../../types/ingredient';
 import type { CocktailRecipe, RecipeIngredient } from '../../types/recipe';
 import { calculateRecipeAbv } from '../../utils/abvCalculator';
@@ -95,6 +123,8 @@ const emit = defineEmits<{
   delete: [recipeId: string];
 }>();
 
+const inventoryStore = useInventoryStore();
+
 interface IngredientRow {
   recipeIngredient: RecipeIngredient;
   ingredient: Ingredient;
@@ -109,6 +139,13 @@ const ingredientRows = computed<IngredientRow[]>(() => {
     })
     .filter((row): row is IngredientRow => Boolean(row));
 });
+
+const missingCount = computed(() => ingredientRows.value.filter((row) => !inventoryStore.hasIngredient(row.ingredient.id)).length);
+
+const missingIngredientNames = computed(() => ingredientRows.value
+  .filter((row) => !inventoryStore.hasIngredient(row.ingredient.id))
+  .map((row) => row.ingredient.name)
+);
 
 const recipeAbv = computed(() => calculateRecipeAbv(props.recipe, props.ingredients));
 </script>

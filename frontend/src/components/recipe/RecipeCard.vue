@@ -1,5 +1,5 @@
 <template>
-  <article class="group flex h-full flex-col border border-[var(--color-border)] bg-[var(--color-card)] p-5 transition hover:-translate-y-1 hover:shadow-vessel">
+  <article class="group flex h-full flex-col border border-[var(--color-border)] bg-[var(--color-card)] p-5 transition hover:-translate-y-1 hover:shadow-vessel" :class="{ 'ring-2 ring-red-400/40': missingCount > 0 }">
     <div class="flex items-start justify-between gap-4">
       <RouterLink :to="`/recipes/${recipe.id}`" class="min-w-0">
         <p class="text-xs font-bold uppercase tracking-[0.22em] text-[var(--color-muted)]">{{ recipe.baseSpirit }}</p>
@@ -7,6 +7,10 @@
       </RouterLink>
       <GlassIcon :type="recipe.glassType" :size="46" class="shrink-0 text-[var(--color-accent)]" />
     </div>
+
+    <p v-if="missingCount > 0" class="mt-4 rounded-md border border-dashed border-red-400/50 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-600 dark:text-red-400">
+      缺少 {{ missingCount }} 种材料
+    </p>
 
     <p class="mt-4 line-clamp-3 text-sm leading-6 text-[var(--color-muted)]">{{ recipe.description }}</p>
 
@@ -17,6 +21,7 @@
         :ingredient="item.ingredient"
         :amount="item.recipeIngredient.amount"
         :unit="item.recipeIngredient.unit"
+        :missing="!inventoryStore.hasIngredient(item.ingredient.id)"
       />
     </div>
 
@@ -43,6 +48,7 @@ import { computed } from 'vue';
 import GlassIcon from '../common/GlassIcon.vue';
 import IngredientTag from '../common/IngredientTag.vue';
 import { DIFFICULTY_LABELS } from '../../constants/enums';
+import { useInventoryStore } from '../../stores/useInventoryStore';
 import type { Ingredient } from '../../types/ingredient';
 import type { CocktailRecipe, RecipeIngredient } from '../../types/recipe';
 import { calculateRecipeAbv } from '../../utils/abvCalculator';
@@ -62,21 +68,26 @@ const emit = defineEmits<{
   favorite: [recipeId: string];
 }>();
 
+const inventoryStore = useInventoryStore();
+
 interface IngredientRow {
   recipeIngredient: RecipeIngredient;
   ingredient: Ingredient;
 }
 
-const visibleIngredientRows = computed<IngredientRow[]>(() => {
+const allIngredientRows = computed<IngredientRow[]>(() => {
   const ingredientMap = new Map(props.ingredients.map((ingredient) => [ingredient.id, ingredient]));
   return props.recipe.ingredients
     .map((recipeIngredient) => {
       const ingredient = ingredientMap.get(recipeIngredient.ingredientId);
       return ingredient ? { recipeIngredient, ingredient } : undefined;
     })
-    .filter((row): row is IngredientRow => Boolean(row))
-    .slice(0, 3);
+    .filter((row): row is IngredientRow => Boolean(row));
 });
+
+const visibleIngredientRows = computed<IngredientRow[]>(() => allIngredientRows.value.slice(0, 3));
+
+const missingCount = computed(() => allIngredientRows.value.filter((row) => !inventoryStore.hasIngredient(row.ingredient.id)).length);
 
 const recipeAbv = computed(() => calculateRecipeAbv(props.recipe, props.ingredients));
 const difficultyLabel = computed(() => DIFFICULTY_LABELS[props.recipe.difficulty]);

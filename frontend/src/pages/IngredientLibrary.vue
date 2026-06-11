@@ -5,7 +5,10 @@
         <p class="text-sm font-semibold uppercase text-[var(--color-muted)]">Ingredient library</p>
         <h1 class="font-display text-5xl text-[var(--color-text)]">材料库</h1>
       </div>
-      <button type="button" class="action-link" @click="resetForm">清空表单</button>
+      <div class="flex gap-2">
+        <button type="button" class="action-link" @click="inventoryStore.clearInventory">清空库存</button>
+        <button type="button" class="action-link" @click="resetForm">清空表单</button>
+      </div>
     </section>
 
     <FilterBar
@@ -17,13 +20,26 @@
 
     <section class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
       <div v-if="filtered.length" class="grid gap-4 md:grid-cols-2">
-        <article v-for="ingredient in filtered" :key="ingredient.id" class="border border-[var(--color-border)] bg-[var(--color-card)] p-5">
+        <article v-for="ingredient in filtered" :key="ingredient.id" class="border border-[var(--color-border)] bg-[var(--color-card)] p-5" :class="{ 'inventory-card--has': inventoryStore.hasIngredient(ingredient.id) }">
           <div class="flex items-start justify-between gap-4">
             <IngredientTag :ingredient="ingredient" />
             <span class="text-sm font-semibold text-[var(--color-muted)]">{{ INGREDIENT_CATEGORY_LABELS[ingredient.category] }}</span>
           </div>
           <p class="mt-4 text-sm leading-6 text-[var(--color-muted)]">{{ ingredient.description }}</p>
           <p class="mt-4 text-sm font-semibold text-[var(--color-text)]">{{ ingredient.abv }}% ABV</p>
+          <div class="mt-4 flex items-center justify-between rounded-lg border border-dashed px-3 py-2" :class="inventoryStore.hasIngredient(ingredient.id) ? 'border-green-500/50 bg-green-500/10' : 'border-[var(--color-border)] bg-transparent'">
+            <span class="text-sm font-semibold" :class="inventoryStore.hasIngredient(ingredient.id) ? 'text-green-600 dark:text-green-400' : 'text-[var(--color-muted)]'">
+              {{ inventoryStore.hasIngredient(ingredient.id) ? '● 已有库存' : '○ 暂无库存' }}
+            </span>
+            <button
+              type="button"
+              class="mini-button text-xs"
+              :class="inventoryStore.hasIngredient(ingredient.id) ? '' : 'bg-[var(--color-accent)] text-[var(--color-accent-text)] hover:opacity-90'"
+              @click="inventoryStore.toggleIngredient(ingredient.id)"
+            >
+              {{ inventoryStore.hasIngredient(ingredient.id) ? '移除' : '标记有货' }}
+            </button>
+          </div>
           <div class="mt-5 flex gap-2">
             <button type="button" class="mini-button" :disabled="ingredientStore.isDefaultIngredient(ingredient.id)" @click="editIngredient(ingredient)">编辑</button>
             <button type="button" class="mini-button" :disabled="ingredientStore.isDefaultIngredient(ingredient.id)" @click="deleteIngredient(ingredient.id)">删除</button>
@@ -74,11 +90,13 @@ import IngredientTag from '../components/common/IngredientTag.vue';
 import { INGREDIENT_CATEGORY, INGREDIENT_CATEGORY_LABELS, INGREDIENT_CATEGORY_OPTIONS } from '../constants/enums';
 import { useFilter } from '../hooks/useFilter';
 import { useIngredientStore, type IngredientPayload } from '../stores/useIngredientStore';
+import { useInventoryStore } from '../stores/useInventoryStore';
 import type { Ingredient } from '../types/ingredient';
 import type { IngredientCategory } from '../types/enums';
 import type { FilterState } from '../types/recipe';
 
 const ingredientStore = useIngredientStore();
+const inventoryStore = useInventoryStore();
 const { ingredients } = storeToRefs(ingredientStore);
 const editingId = ref<string | null>(null);
 const errorMessage = ref('');
